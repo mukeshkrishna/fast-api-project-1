@@ -1,0 +1,9 @@
+There can be situations like the client should not be knowing all the data from the DB, like the creds etc
+as tbey already know it.
+
+So we need to define the response schema.
+When returning response, we need to convert sqlachemy model to python dictionary.
+Example: we can pass the reponse model in the decorator.
+@app.post("/posts", status_code=status.HTTP_201_CREATED,response_model=schemas.Post)
+
+

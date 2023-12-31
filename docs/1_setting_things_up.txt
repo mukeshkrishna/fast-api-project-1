@@ -1,0 +1,78 @@
+
+ref: https://fastapi.tiangolo.com/tutorial/first-steps/
+
+pip3 install "fastapi[all]" # to install all the optional dependencies of fastapi
+
+pip3 freeze # to see the installed dependencies
+
+
+# To Start the webserver (main.py), if the content is changed then we need to stop and start the server
+# uvicorn is webserver to host python application
+uvicorn <filename>:<fastapi Instance>
+uvicorn main:app
+
+uvicorn '<module>.<sub_mod>.<sub_mod>:<app_name>'
+uvicorn app.main:app --reload
+
+
+# to make the server to monitor the code and change the code (ONLY FOR DEV ENVIRONMENT)
+uvicorn main:app --reload
+
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+
+The above block of code is called Path Operation AKA Route Operation.
+Path Operation Has 2 parts:
+1. Decorator --> @app.get("/")
+2. Function  --> def root():
+
+Anatomy of @app.get("/") ==> app is "FastApi instance"; get is http scheme ; "/" is path operation for our API.
+
+Decorator is also a function which taken in other functions as input and executes it along with its own
+functionality.
+Example: if we need to find the time that took for each function to execute we can import time package(module)
+and get the current time and time that each function started and print the difference. Since this functinality
+is common we can take it out as a function.
+
+Code:
+import time
+def tictock(func):
+    def wrapper():
+        t1 = time.now()
+        func()
+        t2 = time.now() - t1
+        print(f"{func.__name__} ran in {t2} seconds")
+       return wrapper
+
+@tictock  # decorator
+def func1():
+    time.sleep(2)
+
+
+Scenerio 1:
+When we have same path operation, which will be executed?
+Based on the below code, the first path operation which matches will be returned/executed. ie root1()
+So order does matter here.
+
+@app.get("/")
+def root1():
+    return {"message": "Hello World!"}
+
+@app.get("/")
+def root2():
+    return {"message": "Hello World!"}
+
+
+
+
+@tictock # decorator
+def func2():
+    time.sleep(5)
+
+
+func1()
+func2()
+print("Completed")
+
+

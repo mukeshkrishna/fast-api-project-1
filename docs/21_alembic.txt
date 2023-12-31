@@ -1,0 +1,90 @@
+There are some limitations of sql-alchemy, like when we want to modify the table we cannot do it.
+If the table is already present, it will not perform any updates, to fix it we need to drop the table
+and read the data. This is not a good way to do it in production.
+
+We can alembic, which is a database migration tool. Its more powerful than just a database migration tool.
+It can perform incremental updates to database and we can track the changes.
+
+Database migrations:
+--------------------
+1. Developers can track changes to code and rollback the code easily with git, because git helps in tracking
+the history of the code changes. Then, why can't we do the same for database models and tables which are
+created based on schemas?
+2. Database migrations allow us to incrementally track changes to database schemas and rollback changes to any
+point in time.
+3. We will use a tool called alembic to make changes to our databases.
+4. Alembic can also automatically pull database models from sql-alchemy and generate proper tables.
+
+
+Steps to setup alembic:
+----------------------
+1. Install alembic
+    $ pip install alembic
+2. Perform alembic init to create alembic directory and ini file.
+    $ alembic init <folder path>
+    $ alembic init alembic
+3. Go inside the alembic folder, and inside env.py, we need to bind our sql-alchemy with alembic.
+   To achieve it, we need to import the Base of sql-alchemy model(Base = declarative_base() from models.py)
+   inside env.py then refer it as below variable. This allows alembic to read the models.
+
+   from app.models import Base
+
+   target_metadata = Base.metadata
+
+4. we need to set the connection string in alembic.ini file.
+
+sqlalchemy.url = driver://user:pass@localhost/dbname
+sqlalchemy.url = postgresql+<driver>://user:password@localhost:5432/dbname
+Note: if driver not provided it will take the default driver installed, in our case we are using
+psycopg2 as our driver.
+sqlalchemy.url = postgresql+psycopg2://postgres:postres@localhost:5432/fastapi
+
+We know hard-coding the credentials is not a good practise, so we will set this value in alembic/env.py file.
+
+config.set_main_option("sqlalchemy.url",f"postgresql+psycopg2://{settings.database_username}:{settings.database_password}"
+                                        f"@{settings.database_hostname}:{settings.database_port}/{settings.database_name}")
+
+
+
+Working with Alembic:
+---------------------
+Before doing this the our Fast-api application should be in stopped state.
+
+1. Create only the post table
+    1. Create a revision in alembic, and this will create a version folder "alembic/versions"
+       with a file for us to create the tables. And this revision file will have upgrade and downgrade function
+       in which we need to write code to create table, update table etc.
+        $ alembic revision -m "create post tables"
+    2. When we are writing any code for upgrade we need to write the code to downgrade as well.
+
+    example:
+        def upgrade() -> None:
+        op.create_table("posts", sa.column("id", sa.Integer(),nullable=False, primary_key=True),
+                        sa.column("title",sa.String(),nullable=False))
+        pass
+
+
+        def downgrade() -> None:
+            op.drop_table("posts")
+            pass
+    3. execute the revision
+        $ alembic upgrade <revision>
+        $ alembic upgrade 3620477e7148
+        $ alembic heads -> this return the recent revision that we created, and we can upgrade to head as well
+        $ alembic upgrade head
+       After executing this command, we can see it create 2 tables, one for alembic.
+       This alembic table will keep a track of the revision, and the table will have one column to
+       keep track of the revision names.
+    4. Extras
+        - if we need to downgrade we can run below command
+         $ alembic downgrade <revision>
+         $ alembic downgrade -<number> -> number can be -1(1 revision down), -2(2 revision down) etc
+
+
+NOTE: IMPORTANT
+We can auto-generate tables based on the sql-alchemy models defined. This is possible because we referenced the
+Base model from models.py file.
+
+$ alembic revision  --autogenerate  -m "auto-vote"
+
+

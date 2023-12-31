@@ -1,0 +1,154 @@
+When we send the list of posts, then we need to send the likes received by the users along with who
+has liked the posts. Its expensive to perform multiple operations on multiple table to aggregate all the
+information, so this is where joining of 2 tables comes into picture
+
+When we need to get information based on the relationship of two tables,
+
+ref: https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-joins/
+
+Joins:
+-----
+Postgres sql joins are used to combine columns of one or more tables based on the values of common columns
+between the 2 tables. The common columns are typically the primary key of first table, and foreign key
+columns of second table.
+
+DEF: A resultant set will contain only the intersection of both the tables.
+
+Postgres supports multiple joins
+1. inner join - Intersection, joins 2 tables based out of common values
+2. left join
+3. right join
+4. full outer join
+5. cross join
+6. natural join
+7. self join - special join
+
+
+inner join:
+----------
+We are joining basket_a with basket_b, when fruit in basket_a matches with fruit in basket_b.
+This will return only the fruits that are present in both the fruit column of both tables.
+
+SELECT
+    a,
+    fruit_a,
+    b,
+    fruit_b
+FROM
+    basket_a
+INNER JOIN basket_b
+    ON fruit_a = fruit_b;
+
+
+left join:
+---------
+We are left joining basket_a(left) with basket_b(right), when fruit in basket_a matches with fruit in basket_b.
+This will return the resultant set, where if the fruits match the values will be populated, if not match
+the left table values will be populated with correct value but the right table values will be "null"
+
+DEF: The resultant set will contains all the values from left table, and intersected values from right table.
+
+SELECT
+    a,
+    fruit_a,
+    b,
+    fruit_b
+FROM
+    basket_a
+LEFT JOIN basket_b
+   ON fruit_a = fruit_b;
+
+
+If we need to return only the values that are null, then we can have a where clause.
+SELECT
+    a,
+    fruit_a,
+    b,
+    fruit_b
+FROM
+    basket_a
+LEFT JOIN basket_b
+    ON fruit_a = fruit_b
+WHERE b IS NULL;
+
+
+right join:
+----------
+We are right joining basket_a(left) with basket_b(right), when fruit in basket_a matches with fruit in basket_b.
+This will return the resultant set, where if the fruits match the values will be populated, if not match
+the right table values will be populated with the correct value, but the left table values will be "null"
+
+DEF: The resultant set will contains all the values from right table, and intersected values from left table.
+
+SELECT
+    a,
+    fruit_a,
+    b,
+    fruit_b
+FROM
+    basket_a
+RIGHT JOIN basket_b ON fruit_a = fruit_b;
+
+If we need to return only the values that are null, then we can have a where clause.
+
+SELECT
+    a,
+    fruit_a,
+    b,
+    fruit_b
+FROM
+    basket_a
+RIGHT JOIN basket_b
+   ON fruit_a = fruit_b
+WHERE a IS NULL;
+
+
+full outer join:
+----------------
+It will join both the tables, and the resultant set contains the values which matched between both the tables,
+if the values didn't match it will have null.
+
+SELECT
+    a,
+    fruit_a,
+    b,
+    fruit_b
+FROM
+    basket_a
+FULL OUTER JOIN basket_b
+    ON fruit_a = fruit_b;
+
+To get the values which are null in both the tables.
+
+SELECT
+    a,
+    fruit_a,
+    b,
+    fruit_b
+FROM
+    basket_a
+FULL JOIN basket_b
+   ON fruit_a = fruit_b
+WHERE a IS NULL OR b IS NULL;
+
+
+
+
+To our case, we can join both posts and users table like below.
+
+SELECT * FROM posts LEFT JOIN users ON posts.owner_id = users.id;
+SELECT posts.id,users.email FROM posts LEFT JOIN users ON posts.owner_id = users.id;
+SELECT posts.*,users.email FROM posts LEFT JOIN users ON posts.owner_id = users.id;
+
+
+Q, How to get the number of posts by each user?
+SELECT users.email,COUNT(posts.id) AS user_post_count FROM posts RIGHT JOIN users ON posts.owner_id = users.id GROUP BY users.id;
+
+SELECT posts.*,COUNT(votes.post_id) as votes FROM posts LEFT JOIN votes on votes.post_id = posts.id GROUP BY posts.id;
+
+GROUP BY:
+---------
+Group by is used to divide rows into group, which then can be used against aggregate functions like
+COUNT,MAX,SUM etc.
+
+SELECT posts.*,COUNT(votes.post_id) as votes FROM posts LEFT JOIN votes on votes.post_id = posts.id GROUP BY posts.id;

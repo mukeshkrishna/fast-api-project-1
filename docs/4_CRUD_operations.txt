@@ -1,0 +1,39 @@
+CRUD OPERATIONS:
+----------------
+
+C - Create   --   POST          /post              -- @app.post("/posts")
+
+R - Read     --   GET           /posts/:id         -- @app.get("/posts/{id}")
+             |
+             ---- GET           /posts             -- @app.get("/posts")
+
+U - Update   --   PUT/PATCH     /posts/:id         -- @app.put("/posts{id}")
+
+D - Delete   --   DELETE        /posts/:id         -- @app.delete("/posts/{id}")
+
+
+Any application should be able to perform CRUD operations, we should always name the route operations in
+plurals(example: /posts and not /post)
+
+For updating the data, PUT or PATCH. But one difference is if PUT call, we need to set all the fields with
+correct values. Incase of PATCH we can send only the specific field which needs to be changed.
+
+
+NOTE: /posts/:id  ; the path parameters will be always returned as a string. in our case it was "id"
+
+
+Q, Lets say we have 2 routes "/posts/{id}" and "/posts/latest" in this order. If we do get on "/posts/latest"
+what will happen?
+Ans: it will throw an error as "id" is looking for int and we got "latest" which is string. This is because
+order does matter in path operation.
+
+Current order in the main.py:
+/posts/{id}
+/posts/latest
+
+Proposed order which will fix this:
+/posts/latest
+/posts/{id}
+
+
+Swagger Fast-Api docs: http://127.0.0.1:8000/docs

@@ -1,0 +1,32 @@
+
+In Fast-Api we can handle query parameters easily, query parameter can be passed as another argument in the
+function defined for the path operation.
+
+skip functionality here allows to have pagination functionality, lets say a page yields 10 posts and if need
+to go to next page, then we need to skip by another 10 posts.
+
+example: limit is defined as another argument in the function like below.
+
+URL: http://localhost:8000/posts?limit=1&skip=1
+
+@router.get("", response_model=List[schemas.Post])
+def get_posts(db: Session = Depends(get_db),
+              current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0,
+              search: Optional[str] = ""):
+    # db.query(models.Post) --> this will just return the SQL query. And if add .all() then it will be
+    # executed against postgres to fetch all.
+    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    # cursor.execute("""SELECT * FROM posts""")
+    # posts = cursor.fetchall()
+    return posts
+
+
+
+Example: we can allow white-spaces in query parameter, to achieve it we can pass values as "search=mukesh%20super"
+or search=mukesh+super". This is based on the url-encoding being used
+
+Form data (for GET or POST) is usually encoded as application/x-www-form-urlencoded: this specifies + for spaces.
+URLs are encoded as RFC 1738 which specifies %20.
+In theory I think you should have %20 before the ? and + after:
+
+%20 or + --> this should be placed in place of white-spaces.

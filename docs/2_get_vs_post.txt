@@ -1,0 +1,17 @@
+
+GET VS POST:
+------------
+
+GET --> We request data from the API server, and server responds with the requested data.
+POST --> We use POST request to create data, and we can pass the data to be created, and server responds
+with the data it should respond back. Example: store a user in database
+
+
+How to send body(data block) in POST api?
+We can use Body from fastapi.params module/package.
+
+@app.post("/createposts")
+def create_posts(payload: dict = Body(...)):
+    print(payload)
+    return {"message": "Successfully created posts"}
+

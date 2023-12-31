@@ -1,0 +1,10 @@
+Python Package or Module:
+-------------------------
+Rather than keeping the main.py in root folder, we can create a python package and move the main.py inside this foler.
+To create a proper python package, we need to create a folder with __init__.py file.
+__init__.py can be an empty file, and this tells python and the folder is python package.
+
+Now to start the python application we need to run the below command.
+
+ uvicorn <python package name>.<python filename>:<FastApi instance> --reload
+ uvicorn app.main:app --reload

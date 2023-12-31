@@ -1,0 +1,145 @@
+
+The most topic when building any API or application is authentication.
+
+There are 2 main ways in tackling authentication.
+1. Session based authentication, and the idea behind the session is, we store something on the backend server
+to track whether the user is logged in or not. there is some piece of information whether we store it in memory
+or database. This method is stateful, as some information of the client is being stored to track whether tht user
+is logged in or not.
+
+2. JWT token based authentication, the idea behind is that its stateless. there is no information on the backed
+that can track whether the user is logged in or not. JWT token is stored at the client side, which keeps track
+on the expiration of the token ie when the user the can login and get logged out.
+
+
+Steps:
+1. Client sends username and password to backend API/server.
+2. The backend API/server, verifies whether the credentials are valid, post validation it will create a JWT
+token and sends it back to the client. Client can use this JWT token to send subsequent requests
+without needs to log in again and again for each request. JWT is considered for further authentications.
+3. The client uses this JWT token in its headers and sends a request to API/server, the API/server then
+verifies the JWT token; post-verification sends a response back to the client.
+
+The API/server will not keep a track of the JWT token, the client manages and stores the token, and provides
+it to use when making any requests.
+
+
+JWT Deep Dive:
+--------------
+JWT token is not encrypted, but its base64 encoded.
+example:
+<base64-encoded header>. <base64-encoded claims>. <signature>
+
+JWT has 3 individual pieces.
+1. Headers
+2. Payload
+3. Verify Signature
+
+1. Headers:
+Includes metadata about the token. We will include algorithm, and type of the token.
+example:
+{
+    "algo": "HS256",
+    "type": "JWT"
+}
+
+2. Payload:
+This is the interesting part, we can send no payload, or send any piece of information
+within the payload that we would like. It is crucial not to send sensitive information
+in the payload as the JWT token is not encrypted.
+
+The very common thing that we put in the payload is ID of the user, when we try to login, the API
+will create the token and embed the payload with the user-id.
+
+Its important not to put some much data in the payload as it will increase the size of the packet and
+that will slow the system, we need to put only essential information to uniquely indentify the user.
+
+example:
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022
+}
+
+3. Signature
+Signature is a combination of 3 things, we take the header and payload which is already in the JWT token, then
+add a special secret which we keep it in our API/server. We take all 3 fields and pass it to the signing
+algorithm(HS256), this will return us a signature. We use this signature to determine whether the user is
+valid.
+
+The special secret which we keep it in our API/server, should be kept secure as if it gets leaked out
+anyone can tamper our JWT token and our authentication system would be compromised.
+
+This signature is in place for data integrity, even if the client changes the payload, the API/server
+during verification of the token will get to know the miss-match in the payload.
+
+
+
+WHY WE NEED SIGNATURE WITHIN THE TOKEN:
+---------------------------------------
+
+1. client/User has provide the credentials and authenticated via API/server, the server/API processes
+the request and its in the process of sending the JWT token which was created. JWT token was created with
+Headers,payload(user-id=51, user-role=user),signature(base64(header,payload,special-secret)). Special-secret only
+the API/server have access to it. This all will be sent to the hashing function(HS256) of our choice to form
+the secret. This will be the JWT token, which will be sent to the client.
+
+2. The client if now tries to change the payload to user-id=51 & user-role=admin, and send the request to
+API/server. The API server does the validation, the validation is very simple. It will take the client
+provided headers,payload,secret(only API/server knows it) and forms a testing-signature. Now it will try to
+check the provided client-signature and testing-signature, if both are same its considered valid, else
+it will get to know that the payload and headers are tampered.
+
+testing-signature != client-signature  --> payload/header/signature got changed, not valid token
+testing-signature != client-signature  --> valid token
+
+NOTE: Since the JWT token is just base64 encoded, anyone can see the token, modify the token. But they cannot
+recreate a valid signature because they dont have the secret.
+
+
+Logging in the USER, How to validate whether the credentials are correct?
+-------------------------------------------------------------------------
+
+1. User will hit "/login" endpoint and provide the email-address and password. The password is called as
+attempted-password.
+2. The password and email-address are sent to the API/server as plain text. The API/server then queries
+the POSTGRES-SQL to find user based on email-address. The POSTGRES-SQL will return the user details along
+with the hashed password. Now the important question is the client sent the password in plain-text and
+SQL gave the password in hashed format, how can we validate whether the attempted-password is valid or not.
+
+NOTE: Hashing is not encryption. Once the data is hashed we cannot convert it back to plain-text,
+hashing is one way process.
+
+3. We take the attempted-password and hash it again, and if the POSTGRES-SQL provided hashed password
+and hashed value of attempted-password is the same, then we can consider the password provided is correct else
+we can consider the password is wrong.
+
+hashed-attempted-password != hashed-password-from-postgres --> dont authenticate user
+hashed-attempted-password == hashed-password-from-postgres --> authenticate user
+
+4. if the hashed-attempted-password is same as hashed-password-from-postgres, then the API/server
+ will create a JWT token and send it to client.
+
+
+
+ We know Depends on a fastapi library allows us to make a dependency in any of the path operation, like wise
+ we can have login dependency on any specific path
+
+@router.post("/", status_code=status.HTTP_201_CREATED,response_model=schemas.Post)
+def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), get_current_user: int = Depends(outh2.get_current_user)):
+    # # this is a staging change to the postgres sql databases
+    # cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s, %s, %s) RETURNING * """,
+    #                (post.title,post.content,post.published))
+    # new_post = cursor.fetchone()
+    # # commit to actually store the value in postgres sql database
+    # conn.commit()
+
+    # new_post = models.Post(title=post.title,content=post.content,published=post.published)
+    # we will convert our post pydantic model to dictionary, and the unpack it like **post.dict()
+    new_post = models.Post(**post.dict())
+    db.add(new_post) # add the post data to DB
+    db.commit() # Save the data in DB
+    db.refresh(new_post) # retrieve the saved data and store it in new_post variable, similar to 'RETURNING *'
+    return new_post
+
+

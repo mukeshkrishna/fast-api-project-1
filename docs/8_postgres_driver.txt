@@ -1,0 +1,9 @@
+If we are working with postgres using python, then we need to have a postgres driver.
+
+psycopg 2 --> module to use in python to connect with postgres.
+
+Step 1: Create a connection to postgres using dbname, user etc
+Step 2: Open a cursor to perform database operations. we can "execute"( run SQL commands), to save data to
+        database as persistent, then we can use "commit".
+Step 3: close the cursor, and close the database connection.
+

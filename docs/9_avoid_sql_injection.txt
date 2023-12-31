@@ -1,0 +1,21 @@
+Why to do the below ?
+The best way to insert data into SQL is to pass the values separately and not to perform string interpolation
+with {}.
+cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s, %s, %s)""",
+          (post.title,post.content,post.published))
+
+If we perform the below then we can cause SQL injection, if someone try to pass SQL queries in place of post.tile
+or any other fields.
+cursor.execute("""INSERT INTO posts (title,content,published) VALUES ({post.title}, {post.content}, {post.published})""")
+
+we are using postgres client library like psycopg2, which can sanatize the inputs if we pass the values separately
+as a second field in the execute function.
+cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s, %s, %s)""",
+          (post.title,post.content,post.published))
+
+
+1, Issue faced when passing vars to cursor.execute() function we need to pass a tuple or list?
+I passed below, (str(id)) was not considered as a tuple even though i have enclosed it in "()".
+cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id)))
+To make it a tuple i need to add a extra comma at the end, like (str(id),). And this fixed the issue.
+cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))

@@ -1,0 +1,79 @@
+
+We are hitting all our endpoints either from postman or curl, which is directly from the computer from where
+the API/server being hosted.
+
+But in real-life, the request will be coming from variety of devices like computers, mobile phones etc.
+More importantly, we will get requests from web-browsers.
+The web-server will send a request using java-scripts fetch api, then there will be sligtly different
+behavior to account for, this is because post-man is not a web-browser.
+
+Test the theory by following the below steps:
+----------------------------------------------
+1. Open any browser, and navigate to www.google.com, we can do it from any website but we are trying from
+google.com.
+2. Then right-click on the webpage and open inspect, this allows developer tools to show up and navigate to
+console and type the below to mimic that the request is from google.com using java-script.
+
+    fetch("http://localhost:8000/").then(res => res.json()).then(console.log)
+
+And we will get below error:
+Access to fetch at 'http://localhost:8000/' from origin 'https://www.google.com' has been blocked by CORS policy:
+No 'Access-Control-Allow-Origin' header is present on the requested resource.If an opaque response serves your
+needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+
+
+Q. Why are we not able to send a request from browser but works properly in post-man?
+This is because of CORS policy
+
+CORS - Cross Origin Resource Sharing:
+-------------------------------------
+1. Cross Origin Resource sharing allows you to make requests from a web browser on one domain to a server
+on a different domain.
+Example: we made a request from "google.com"(domain-1) to localhost(domain-2)
+2. By default our API will only allow web-browsers running on the same domain as our server to make request to it.
+ie. If our website is hosted as ebay.com, by default will not be able to request API which is hosted in google.com
+And it will be blocked by CORS.
+If our website is "google.com "and the API is also hosted in "google.com "then it will work.
+
+
+To Test CORS theory:
+--------------------
+1. Open chrome browser, and naviate to "http://localhost:8000/".
+2. Then right-click on the webpage and open inspect, this allows developer tools to show up and navigate to
+console and type the below to mimic that the request is from google.com using java-script.
+
+    fetch("http://localhost:8000/").then(res => res.json()).then(console.log)
+
+Response:
+fetch("http://localhost:8000/").then(res => res.json()).then(console.log)
+Promise {<pending>}
+{message: 'Hello World!'}
+
+We got the response back because we are executing the API which is hosted in "localhost:8000", and the
+website which was loaded also was "localhost:8000"
+
+
+Enable CORS on main.py
+----------------------
+ref: https://fastapi.tiangolo.com/tutorial/cors/
+
+1. import the below library
+   from fastapi.middleware.cors import CORSMiddleware
+2. Add the below snippet below FastApi initialization.
+    origins = ["https://www.google.com"]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins, # what domains that are allowed to talk to our API/server
+        allow_credentials=True,
+        allow_methods=["*"], # what HTTP Methods allowed, like POST, PUT, PATCH, DELETE etc
+        allow_headers=["*"], # What headers to allow
+    )
+    This middleware is a function which will run before every request, if we make a call to "/posts"
+    then first action is to call the middleware, and middleware will perform some sort of operation.
+
+    if our API is global, and it should work with all the websites then we can set origin as below.
+    origins = ["*"]
+
+    if our API is allowed only for our web-application, then we can provide only our web-application
+    will be allowed.
+    origins = ["https://our-web-app.com"]

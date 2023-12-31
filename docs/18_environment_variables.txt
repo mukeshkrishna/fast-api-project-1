@@ -1,0 +1,13 @@
+We need to have environmental variables to store certain sensitive information on the machine where the
+API/server will be running, by doing so we don't need to hard-code the values in the code.
+
+In an Application or project grows, we might use a lot of environmental variables, and we need to have a mechanism
+to check whether all the environmental variables needed by the application are present.
+We can use pydantic in validate all the environment variables of their type.
+
+NOTE:
+1. any value read using environmental variables will be a string.
+2. All environment variable names should be all capital letters. (Best practise)
+
+
+

@@ -1,0 +1,28 @@
+Pydantic VS Sql-Alchemy:
+------------------------
+There can be lot of confusions around Post in pydantic and Post in sql-alchemy. And both are there for different
+purposes.
+
+Pydantic Module is used to define the structure/schema of request and response.
+We define is so, the server can process only defined fields in the schema and the client is forced to
+send the data in the format which server can understand and process.
+A Python package usually consists of several modules.
+The request from client is first sent into pydantic module, and pydantic module validates the request
+to see all the fields requested are there or not, if not there it sends a response back to client with
+the requested fields and the fields type(int, string etc).
+
+Example: Here the Post class extends from BaseModel, which is from pydantic module
+class Post(BaseModel):
+    title: str
+    content: str
+    published: bool = True
+
+
+client ---------->  Request  ----------------> Pydantic Module ---------------> Fast-api
+client <---------------- Pydantic Module <---------------  Response ----------> Fast-api
+
+
+SQL Alchemy Module:
+------------------
+It is used to defining the columns of ours posts table within postgres.
+Its used to query, create, delete, and update entries within the database.

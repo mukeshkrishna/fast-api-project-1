@@ -1,0 +1,31 @@
+Let say we want to know the users who created this post, but based on the current setup we cannot
+achieve it because there is no relationship between users and posts databases. And the post is not
+associated with the user.
+
+We associate posts table with a new column called user_id and this column is created as foreign-key.
+Foreign-key is way to tell SQL that this column is connected to another table.
+
+This is called one-to-many relationship in SQL.
+Ie, 1 user can create as many posts as they want. But a post will be associated to only 1 user.
+
+We can create relationships in the sqlachemay models, this tells sql-alchemy to fetch certain data
+based of the relationships.
+
+in shemas.py, we can refer another pydantic module using the class name.
+
+example: owner: UsersOut ==> UsersOut is a another pydantic model
+
+class UsersOut(BaseModel):
+    email: EmailStr
+    id: int
+    created_at: datetime
+    class Config:
+        orm_mode = True
+
+class Post(PostBase):
+    id: int
+    created_at: datetime
+    owner_id: int
+    owner: UsersOut
+    class Config:
+        orm_mode = True

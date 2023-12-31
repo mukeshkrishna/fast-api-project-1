@@ -1,0 +1,27 @@
+
+Why we need to Python Virtual Environment?
+Virtual environment is a python module/package which allows us to segregate project dependencies and avoid conflicts.
+
+Lets say we have python3.9 installed on your laptop, and you have created a python project and it uses Py-Mongo:2.1
+And you have created another python project on the same laptop and this project requires Py-Mongo:3.6.
+This causes conflict as python interpreter can install one version of a module on the same laptop. This is
+resolved by python virtual environment.
+
+So we use venv to create isolate environment for python projects and it will not affect any other environment,
+using it we can install any python package with any version and its completely isolated to this project.
+
+
+
+python3 -m venv <virtual env name>
+python3 -m venv venv
+
+A venv folder will be created under src folder, and inside venv/bin/python3.10 will be considered as python
+interpreter for this project.
+
+Enable Venv When using VSCODE:
+Step1 : open command palet in VSCODE and search for interpreter and select "Enter interpreter path"
+Step2: Provide relative path to python in venv folder (./venv/bin/python)
+Step3: Open VSCODE terminal and execute below command to enable venv for terminal.
+        $ source venv/bin/activate
+NOTE: If we close the terminal then we need to run step3 again, if the vscode is closed and opened again make sure
+vscode points to venv.

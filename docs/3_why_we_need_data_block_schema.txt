@@ -1,0 +1,33 @@
+
+Why we need data block schema?
+1. its pain to get all the values from the body.
+2. The client(front-end) can send any data they want, and they may be sending invalid data.
+3. The data is not getting validated.
+4. We ultimately want the client to send the data in the schema that the server/api expects.
+
+Schema is basically a contract between the backend and frontend, if we dont send the data exactly how
+i want it then i wont process it and will throw up an error.
+
+To achieve this we need to use "pydantic" module to define the schema. This is completely separate python
+module which can we used with another python framework and not tied with FastApi.
+
+
+
+we need to define a class for "posts" and then extend the class with pydantic's "BaseModel".
+pyndatic automatically does the validation of the data being sent based on the schema defined inside the Post
+class.
+
+class Post(BaseModel):
+    title: str
+    content: str
+    published: bool = True   # this says if the user does not provide "published" it will be considered as true
+    rating: Optional[int] = None # if we dont want to store default value we can store optional value as None
+@app.post("/createposts")
+def create_posts(new_post: Post):
+    print(new_post)
+    return {"new_posts": f"{new_post.title}; {new_post.content}"}
+
+
+new_post: Post --> here the "Post" is getting converted to a specific pydantic model, and if we need to convert
+it to dictionary then we can do it using "new_post.dict()"
+

@@ -1,0 +1,34 @@
+Voting and Like System Requirements:
+------------------------------------
+1. Users should be able to like a post
+2. A user should only be able to like a post once
+3. Retrieving post should also fetch the total number of likes.
+
+Vote Model:
+----------
+1. Column to reference post_id and column to reference the user who liked the post as user_id
+2. A user should only be able to like a post once, so this means we need to ensure every post_id/user_id
+is a unique combination.
+
+To achieve this, we need to make use of composite keys.
+
+What is composite keys:
+-----------------------
+1. Composite key is nothing but a primary key that spaces multiple columns
+2. Since primary keys must be unique, this will ensure no user can like a post twice.
+3. The composite keys see a combination of both post_id and user_id to have a unique value.
+ie both post_id and user_id is a primary key
+
+
+Vote Route:
+----------
+
+1. Path will be /vote
+2. the user-id will be extracted from the JWT token
+3. The body will contain the id of the post the user is voting on as well as the direction of the vote.
+{
+    post_id: 123,
+    vote_dir: 0
+}
+4. A vote direction of 1 means, we want to add the vote. if the direction is 0 means we want to delete a vote.
+

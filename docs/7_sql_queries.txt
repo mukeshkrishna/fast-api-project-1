@@ -1,0 +1,92 @@
+
+SELECT * FROM products;
+SELECT name as product_name, id as product_id FROM products;
+SELECT * FROM products WHERE id = 2;
+SELECT * FROM products WHERE inventory = 0;
+SELECT * FROM products WHERE name = 'TV';
+SELECT * FROM products WHERE price > 10;
+SELECT * FROM products WHERE price >= 10;
+SELECT * FROM products WHERE price <= 10;
+
+NOT Operations: either != or <>
+SELECT * FROM products WHERE inventory != 0;
+SELECT * FROM products WHERE inventory <> 0;
+
+
+SELECT * FROM products WHERE inventory <> 0 AND price > 1;
+SELECT * FROM products WHERE price >= 5 OR price < 1;
+
+
+SELECT * FROM products WHERE id = 1 OR id = 2 OR id = 3;
+SELECT * FROM products WHERE id IN (1,2,3); # this will return anything in the provided tuple or list.
+
+# this will select any product with name that starts with 'TV' and can have any character after it.
+# % tells match any random character after TV.
+# its kind a like regular expressions.
+SELECT * FROM products WHERE name LIKE 'TV%';
+
+SELECT * FROM products WHERE name LIKE '%e'; # match any name that ends in letter 'e'
+
+SELECT * FROM products WHERE name NOT LIKE '%e'; # match any name that does not ends with letter 'e'
+
+SELECT * FROM products WHERE name NOT LIKE '%p%'; # match any substring that has 'p'
+
+# ASC  - Ascending - Default behavior
+# DESC - Descending
+
+SELECT * FROM products ORDER BY price ASC;
+SELECT * FROM products ORDER BY price DESC;
+
+# to sort inventory by DESC, and if there is rows with same values like '0', then sort those rows alone
+# by price in ASC
+SELECT * FROM products ORDER BY inventory DESC, price ASC;
+
+# get the most recently added products
+# since created time is is number newer date will considered larger value so we need to sort by DESC
+SELECT * FROM products ORDER BY created_at DESC;
+SELECT * FROM products WHERE price >=20 ORDER BY created_at DESC;
+
+# to get only the first 10 values, as database can have millions of records/rows.
+SELECT * FROM products LIMIT 10;
+
+# Offset is used to skip the rows, if we give offset of 2 then the first 2 records will be skipped and it will
+# display from 3rd record
+SELECT * FROM products ORDER BY id ASC LIMIT 5 OFFSET 2;
+
+INSERT:
+-------
+# Add records using SQL, order of column does not matter
+INSERT INTO <table name>(<column-1>, <column-2>,...) VALUES(<value-of-column-1>,<value-of-column-2>,...)
+INSERT INTO products(name, price, inventory) VALUES('torttia',4,250);
+INSERT INTO products(price, name, inventory) VALUES(4,'torttia',250);
+
+# Returning will allow us to return the inserted data for us to visualize
+# RETURNING <column-1>, <column-2>, .... (or) RETURNING * --> * this means all columns
+INSERT INTO products(name, price, inventory) VALUES('bun',2,250) RETURNING *;
+
+
+# we can insert data in bulk
+INSERT INTO products(name, price, inventory)
+VALUES ('burner',2,250), ('dosa batter',4,150), ('crisps',5,450)
+RETURNING *;
+
+
+INSERT INTO posts(title, content, published)
+VALUES ('first post','some interesting stuffs',True), ('second post','some interesting stuffs',True)
+RETURNING *;
+
+
+DELETE:
+-------
+# DELETE entry from table.
+DELETE from products WHERE id=10;
+DELETE from products WHERE id=10 RETURNING *; # to return the delete row
+DELETE FROM products WHERE inventory = 0 RETURNING *;
+
+
+UPDATE:
+-------
+# updating a existing record or row in the table.
+UPDATE products SET name = 'flour torttia', price = 40 where id = 20;
+UPDATE products SET name = 'flour torttia', price = 40 where id = 20 RETURNING *;
+UPDATE products SET is_sale = true WHERE id > 15 RETURNING *;

@@ -1,0 +1,52 @@
+We were executing SQL commands directly using any sql drivers that are available like psycopg2.
+But there are other methods available like Object Relational Mapper(ORM)
+
+Object Relational Mapper(ORM):
+-------------------------------
+Its a layer of abstraction that sits between the database and fast-api application.
+We will not talk directly to Database, we talk to ORM and ORM then talks to database.
+Instead of using RAW SQL commands, we can perform all the operations using traditional python code
+which then translates to SQL using ORM.
+ORM will use the same database driver that we are using to talk to database.
+
+                python                  psycopg / SQL
+Fast Api ----------------------> ORM ----------------------> Postgres
+
+What can ORMs do?
+Instead of manually defining tables in postgres, we can define our tables as python models.
+And queries can be made exclusively using python code.
+
+sqlalchemy is one the most popular python ORM.
+Its a standalone library and has no association with fast-api. It can be used with any other python
+web framework or any other python application.
+
+sqlalchemy need psycopg2 driver to talk to postgres as it does not natively talk to databases.
+
+
+Example:
+--------
+    python table model
+    -------------------
+        Class Post(Base):
+            __tablename__ = "posts"
+            id = Column(Integer, primary_key=True, Index=True)
+            title = Column(String, index=True, nullable=False)
+            content = Column(String, nullable=False)
+            published = Column(Boolean)
+
+    Query:
+    -----
+    db.query(models.Post).filter(models.Post.id = id).first()
+
+
+Limitations of sqlalchemy:
+-------------------------
+1. If the table already existing and our model is changed, it will not reciprocate the new changes to the table.
+    Ie: it will not modify the table.
+
+
+Q, How to pass 100's of fields to our Database efficently?
+We can convert our post pydantic model(post) to dictionary, and the unpack it like **post.dict()
+    # new_post = models.Post(title=post.title,content=post.content,published=post.published)
+    # we will convert our post pydantic model to dictionary, and the unpack it like **post.dict()
+    new_post = models.Post(**post.dict())

@@ -1,0 +1,129 @@
+What is Database:
+-----------------
+Database is a collection of organised data that can be easily accessed and managed.
+
+Example: user details, posts details will be stored in databases.
+
+DBMS:
+-----
+We wont work or interact with databases directly.
+Instead we make use of a software referred to as Database Management System(DBMS).
+So when we need to perform any operation on the database, then we will be sending that request to DBMS
+And this DBMS will perform the operation and will send the response back to us.
+DBMS acts as a brain for the database.
+
+
+Popular DBMS:
+------------
+Two main branches of Databases.
+1. Relational(SQL) - MYSQL, POSTGRES, ORACLE, SQL SERVER
+2. NoSQL - MongoDB, DynamoDB, ORACLE, SQL SERVER
+
+SQL databases are slightly different on each of the products, some products might not have some SQL commands
+in it.
+
+Relational(SQL) Database:
+-------------------------
+SQL = Structured Query Language ---> used to communicate with the DBMS
+
+POSTGRES:
+--------
+Each instance of postgres can be carved into multiple separate databases.
+Example: each instance of postgres can be connected by separate applications.
+
+By default every postgres installation comes with a one logical database created called "postgres"
+This is important because Postgres requires you to specify the name of a database to make a connection.
+So there needs to always be one logical database.
+
+
+Tables:
+------
+A table represent  a subject or event in a application.
+What does it mean?
+Lets say we are building a e-commerce application, there will be tables which represent each of the applicaiton
+1. users --> table for all the users who are registered.
+2. products --> table for all the the products which will be sold on the website.
+3. purchases  --> table for storing the purchase history etc
+The nice thing is each of the table can form some sort of a relationship with one another.
+
+example: lets say a registered user is making a purchase, then user-table and purchase-table will have a
+relationship
+
+Columns/Rows:
+-------------
+A table is made up of columns and rows.
+Each Column represent a different attribute
+Each row represent a different entry in the table.
+
+Postgres Datatypes:
+------------------
+Databases have datatypes like any other programming language.
+Whenever we are creating a column in table, we need to define a datatype to it.
+
+Numeric  - Int, Decimal, precision
+Text     - varchar, text
+Bool     - boolean
+Sequence - array
+
+Primary Key:
+-----------
+When we create a table, we need to specify something called primary key.
+Primary key is a column or a group of column that uniquely identifies each row in the table.
+We can have only 1 primary key per table, but it can span across multiple columns in the same table.
+
+Q, What exactly mean by the above terms?
+we need to tell postgres essentially, how can we uniquely identify each entry in the table.
+So we need to provide a special column, where every entry for that specify column is unique without duplicates.
+We can have only 1 primary key per table
+
+Q, How to select which column to be primary key?
+When ever we are creating a table, we will have a column to have identifier(id), in case of users table
+we might have a column for user-id which will be unique
+
+Q, Does Id column should be considered as primary key always?
+No, it does not need to be like that.
+The primary key does not have to be the ID column always, Its upto us to decide which column uniquely defines
+each records.
+In one use-case, if we are creating users based out of email address and we are having a business logic
+that email address for each user should be unique. ie user can sign-up with one email address once, and we cannot
+have 2 users with same email address.
+
+Then email-address column can be considered as primary-key.
+Another example is phone-numbers, which will be unique for each user.
+social security numbers like Aadar, pan , voter-id etc
+
+UNIQUE Constraints:
+-------------------
+When creating a table with column, we can add extra constrain that this specific column should be UNIQUE.
+and each row should be unique.
+
+example: name, phone number column, we dont want 2 users to share the same exact name then we can use UNIQUE
+constraint on that column.
+
+NULL Constraints:
+-----------------
+By default in postgres, when adding a new entry to a database, any column can be left blank.
+when column is left blank, it has a NULL value.
+
+If we need to enforce that column should not have NULL value and should expect a value, then we can add a
+NOT NULL constraint on the column. But doing so postgres will make sure that no record for that column is
+left empty. And if we try to leave that column empty without a value, then postgres will throw an error.
+
+
+
+For our application we have to create a database, called fastapi.
+
+SELECT * FROM products;
+
+SELECT, FROM  --> SQL Keywords
+*, products   --> User provided
+
+SELECT id as products_id, is_sale as on_sale from products;
+
+
+
+
+
+
+
+
