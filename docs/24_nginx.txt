@@ -1,0 +1,116 @@
+
+Nginx:
+------
+1. Nginx is a high-performance webserver that can act as a proxy, which is optimized to perform SSL
+termination.
+
+The https request will be sent to nginx server, then nginx server validate the request and does SSL termination
+post SSL termination sends HTTP request to gunicorn, which is then routed to our fast-api application to
+process the request.
+
+Q. Can we perform SSL termination at the application code only?
+Yes, we can perform SSL termination at the application side without using nginx. We haven't added the functionality
+of SSL termination. Lets say we add this functionality, but since the application is not optimized to perform SSL
+termination, we might see significant degradation in application performance.
+
+In this case, Nginx is a high-performance webserver that can act as a proxy, which is optimized to perform SSL
+termination.
+
+
+Installing nginx on ubuntu machine:
+----------------------------------
+1. $ sudo apt install nginx -y
+2. $ systemctl start nginx
+   $ systemctl enable nginx
+3. If we use the VM's public Ip address, then we can see the nginx welcome page on port 80
+    example: 102,123.1.3:80
+4. We can change the default nginx welcome page to our application's page.
+   $ cd /etc/nginx/sites-available/
+   There will be a file called "default" which contains the default server block for the nginx to act upon.
+
+   Take the copy of default file
+   $ cp default default_copy
+
+5. we need to modify the default block to make nginx perform proxy pass to our fast-api server running by gunicorn
+on localhost:8000.
+
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        server_name _; # replace with specific domain name like sanjeev.com
+
+        location / { # this says anything path after "/" will be having the below experience.
+                proxy_pass http://localhost:8000;
+                proxy_http_version 1.1;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $http_host;
+                proxy_set_header X-NginX-Proxy true;
+                proxy_redirect off;
+        }
+
+}
+
+NOTE: As of now we can see that the our application is accessible on port 80 using HTTP, but in production
+environment we need to setup HTTPS(443).
+To achieve this we need to have Certificate and a domain-name
+
+Setup Domain and Certificate:
+----------------------------
+
+1. We can use "namecheap" as domain register where we can buy a domain.
+example: fast-api.xyz --> the domain which ends with xyz will be the cheapest. and if we need to get one with
+.com then it will be little more expensive.
+
+2. Since our VM is running in digital ocean, we need to have a route from domain to our digital ocean servers
+and loadbalancers. Adding a domain you own to your DigitalOcean account lets you manage the domain’s DNS records
+with the digital ocean's control panel and API. Domains you manage on DigitalOcean also integrate with
+DigitalOcean Load Balancers and Spaces to streamline automatic SSL certificate management.
+The main benefit is we can just refer the droplet or loadbalancer directly in the DNS management page when
+adding any records. And all the controls are in one place.
+ref: https://docs.digitalocean.com/products/networking/dns/getting-started/dns-registrars/
+
+3. Then we can navigate to DNS in digital ocean, and add the domain fast-api.xyz, so from here we can manage the
+records for this domain.
+
+4. We need to create A record, then add "@" at host name and in "will direct to" select the droplet (VM server)
+provide ttl as 60 seconds.
+
+5. We need to add subdomain(www).
+   Add another record to point www.fast-api.xyz to fast-api.xyz which was created at step4.
+    We need to create cname record
+    hostname: www
+    is a alias of : @ --> points to root
+    ttl: 60 seconds
+
+6. We need to setup certificate for our domain.
+    ref : https://certbot.eff.org/instructions?ws=nginx&os=ubuntufocal
+    we can use certbot to configure our NGINX configuration to support ssl certificates.
+    $ sudo snap install --classic certbot
+    $ sudo ln -s /snap/bin/certbot /usr/bin/certbot
+    $ sudo certbot --nginx
+    This will ask for email address(mukes.gmail.com), yes, no, fast-api.xyz www.fast-api.xyz
+    $ sudo certbot renew --dry-run
+
+    confirm wheter it worked by https://fast-api.xyz/
+
+
+Enable firewall to this VM server:
+----------------------------------
+1. $ sudo ufw status
+2. we need add below rules
+    $ sudo ufw allow http
+    $ sudo ufw allow https
+    $ sudo ufw allow ssh
+    $ sudo ufw allow 5432  # this is allowed here because our DB is also installed here, and I need to
+                             connect to it using PGAdmin
+3. restart ufw firewall
+    $ sudo ufw enable
+    $ sudo ufw status
+
+4. to delete any rule, we can perfrom below
+    $ sudo ufw delete allow http

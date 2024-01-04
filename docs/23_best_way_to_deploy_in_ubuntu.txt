@@ -1,0 +1,100 @@
+FOR UBUNTU MACHINE:
+------------------
+First we need to create .env file as per the .sample_env file. Then we need to replace the variables
+with correct values.
+
+Then we need to execute below command to export the variable onto the machine.
+
+set -o allexport; source <path to .env>; set +o allexport
+
+This method of setting env variable is not persistent, if the terminal is closed or machine gets rebooted
+then the variables will not be set again.
+
+To achieve persistence, we need to set the above command in ubuntu's app users home directory .profile file.
+like below.
+
+vi .profiles
+------------
+set -o allexport; source <path to .env>; set +o allexport
+
+
+To Make Application running on ubuntu machine to accept traffic over internet.
+By default when we run "uvicorn app.main:app", this will start accepting connection from 127.0.0.1:8000
+To accept traffic from internet we need to pass the host field, we can change the port from 8000 by passing
+--port field
+"uvicorn --host 0.0.0.0 app.main:app",
+
+If we run our application using "uvicorn --host 0.0.0.0 app.main:app" directly from command, we will get into
+an issue where if the host is restarted the the application will not start as we manually executed uvicorn.
+We need to use some sort of process manager like systemd.
+
+We can install gunicorn which is a HTTP server which allows our python application to run concurrently
+by running multiple python process in a single compute machine. This is achieved with help of workers.
+
+
+we can install gunicorn as a python package.
+$ pip install httptools
+$ pip install uvloop
+$ pip install gunicorn
+
+
+Lets say our VM has multiple CPU cores, then we can set multiple workers so our application is listening
+all at once and gets load balanced across all the CPU's.
+
+$ gunicorn --workers 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+
+
+Create Linux Service to Start gunicorn:
+--------------------------------------
+
+vim gunicorn.service
+--------------------
+[Unit]
+Description=demo fastapi application
+After=network.target
+
+[Service]
+User=mukesh
+Group=mukesh
+WorkingDirectory=/home/mukesh/app/src/
+Environment="PATH=/home/mukesh/app/venv/bin"
+EnvironmentFile=/home/mukesh/.env
+ExecStart=/home/mukesh/app/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+UNIT --->
+Description = this where we define the description for our service.
+After = This tells when to start this gunicorn service, based on above its says start this gunicorn service
+post starting the network services. Because without network service being up and running,
+what's the use of starting any other service which uses network service.
+
+Service --->
+User = Which user will be running this service
+Group = Which group this service will be part of, we can provide the same value as the user.
+WorkingDirectory = Directory from where the main.py file is present
+Environment = This is the python venv environment path
+EnvironmentFile = The path where the .env file is present, this is provide as the env passed in .profiles is not
+accessible inside a systemd service.
+ExecStart = The command to be executed as part of service's entrypoint.
+
+Install --->
+WantedBy = This tells when this service need to start, if we are running our ubuntu without GUI, then the
+SysVint level is 3, ie when the system boots up the kernal will try to match the machine state based out of
+default.target
+
+ref: https://unix.stackexchange.com/questions/506347/why-do-most-systemd-examples-contain-wantedby-multi-user-target
+
+
+$ systemctl enable gunicorn --> this makes the service is started after a reboot.
+$ systemctl start gunicorn
+
+How to know a linux service will be started upon reboot?
+--------------------------------------------------------
+ Step1: perform "systemctl status gunicron | grep -i loaded"
+ Step2: step1 will return the loaded line in the status output, if the loaded as disabled, then it means
+ the service will not be started upon reboot. please dont get confused by "vendor present: enabled".
+ we are talking about the enabled/disabled defined before that.

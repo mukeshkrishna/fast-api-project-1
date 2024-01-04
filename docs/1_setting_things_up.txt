@@ -5,6 +5,12 @@ pip3 install "fastapi[all]" # to install all the optional dependencies of fastap
 
 pip3 freeze # to see the installed dependencies
 
+To activate venv
+source ./venv/bin/activate
+deactivate --> to deactivate venv
+
+printenv --> to printenv on ubuntu machines
+
 
 # To Start the webserver (main.py), if the content is changed then we need to stop and start the server
 # uvicorn is webserver to host python application
