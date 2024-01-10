@@ -1,0 +1,57 @@
+
+
+We will create a custom docker image with all the necessary dependencies. And in our application dockerfile we will
+just copy the source files and add an entry point.
+
+
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+I think there is a good reason to use --no-cache-dir when you are building Docker images.
+The cache is usually useless in a Docker image, and you can definitely shrink the image size by disabling the cache.
+
+Docker compose if used to spin up/ bring down multiple containers at a time.
+servies in docker file is used to define a container.
+
+
+$ docker-compose up -d  -->  Detached mode: Run containers in the background
+$ docker-compose down   --> to destroy the containers created using docker-compose
+
+Naming convention of container when using docker-compose.
+<project-directory>_<service name defined in dockerfile>_<octal>
+example: fastapi_api_1,fastapi_api_2,...
+
+
+Anytime we are creating named volume(postgres-db), we need to create a volume section globally and just need to
+pass the name of the volume which we created. The reason we are doing this because, named volumes are designed
+so technically mutliple containers can access them by referencing the volume name.
+
+When we use docker compose it created a custom network and docker has dns built in,
+and any containers created using docker compose can reach one another by mentioning its name.
+
+
+Q. Lets say i want the container code to get updated if i make any change without rebuild?
+This is not a best practise to follow in production environment, for dev environment we can try it.
+To achieve this we need to use bind-mount, that basically mounts a directory on the local machine
+onto a container on a specified directory from where the application is picked up.
+
+In docker-compose file we need to make this change.
+    <source local directory>:<directory to bind inside the container>:<role/action>
+    ro -> means read-only, this adds extra security that any process inside the container
+          cannot change the files inside the source local directory.
+    volumes:
+      - ./:/usr/src/app:ro
+
+And also we need to update the entrypoint command in the dockerfile with "--reload".
+The other way is we can override the entrypoint command in docker-compose file, in which we can pass
+the uvicorn command to reload the files.
+
+We need to manage 2 different docker compose file dev and production environment.
+We can directly refer the env variable set on the docker host by below.
+${env variable set on the docker host machine}
+POSTGRES_USER=${DATABASE_USERNAME}
+
+Now we need to run docker-compose with -f file because we have changed the file name.
+By default, docker-compose looks for docker-compose.yaml,docker-compose.yml,compose.yaml,compose.yml
+
+$ docker-compose -f docker-compose-dev.yaml up -d

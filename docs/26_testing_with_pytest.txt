@@ -1,0 +1,77 @@
+
+We are using pytest to perform our test cases, we need to create a test module inside app folder.
+
+The function name inside the test module matters, so we need to give test_<any name> for auto-detection.
+
+$ pytest -v -s --> -s needs to be passed if we need to see any print statements
+               --> -v means verbrose
+
+example:
+def test_add():
+    assert add(5,3) == 8
+
+pytest allows us to pass multiple test values using "parameterize"
+
+(1,2,3) --> (num1,num2,expected)
+
+@pytest.mark.parametrize("num1, num2, expected",[(1,2,3),(2,2,4)])
+def test_add():
+    assert add(5,3) == 8
+
+
+If we run multiple code again and again, pytest provide us "fixtures" which allows us to reuse the code.
+fixtures by scopes and by default that is function-scope, this means the fixuters will run before
+every funtion that uses it.
+@pytest.fixture(scope="module") # this will get destroyed after all the tests in module is completed.
+
+@pytest.fixture
+def zero_bank_account():
+    return BankAccount()
+
+
+@pytest.fixture
+def bank_account():
+    return BankAccount(50)
+
+
+def test_bank_default_amount(zero_bank_account):
+    assert zero_bank_account.balance == 0
+
+
+
+pytest -v -s tests/test_users.py
+pytest -v -s tests/test_users.py --disable-warnings
+
+
+Q, pytest will continue to run the test cases even if some test cases failed, how to make
+pytest stop if one test case fails?
+
+-x --> we need to pass this flag to make pytest fail, if it encounters failed.
+
+pytest -v -s tests/test_users.py --disable-warnings -x
+
+
+Q, how can we validate whether the data being returned has correct schemas?
+We can make use of schemas from pydatic to perform validations.
+def test_create_user():
+    response = client.post("/users/",
+                           json = {"email": "mukesh4@gmail.com", "password": "password@123"})
+    new_user = schemas.UserOut(**response.json())
+    assert new_user.email == "mukesh4@gmail.com"
+    assert response.status_code == 201
+
+
+Q, can we perform tests in production database ?
+Best practise it to perform testing in non-prod databases to test all the workflows.
+We can override the DB connection with the testing database.
+
+
+NOTE:
+fastapi is smart enough to redirect /users to /users/ by giving 307 status code, so when writing test
+cases we need to pass the trailing / like /posts/ or /users/. Else the assert will read 307 status
+and response got from fast-api and the test cases will fail.
+
+
+
+We can define all the fixtures needed in the pytest can be defined in conftest.py file, any fixtures inside the
+package will be accessible across other python modules inside the same package.
